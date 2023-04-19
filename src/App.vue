@@ -29,6 +29,9 @@ body {
 
   --color-info-light: #d2dbed;
   --color-info: #96a1b8;
+
+  --color-info-semilight: #c9cfdd;
+
   background-color: #b2b6d2;
 }
 

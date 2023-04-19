@@ -1,7 +1,11 @@
 <template>
     <div>
-        <beauty-button look="primary" :text="curUser" @click="changeUser" />
+        <div style="display: flex;">
+            <beauty-button look="primary" :text="curUser" @click="changeUser" />
+        </div>
+        
         <vue-advanced-chat
+            class="chat-test"
             :current-user-id="curUser"
             :messages="JSON.stringify(messages)"
             :messages-loaded="msgLoaded"
@@ -9,8 +13,25 @@
             :room-info-enabled="false"
             :single-room="true"
             :text-messages="JSON.stringify({LAST_SEEN: 'последний раз был(а) на бутылке '})"
+            show-emojis="false"
+            show-audio="false"
+            show-reaction-emojis="false"
+            :menu-actions="JSON.stringify([
+                {name: 'f1', title: 'Убрать уведомления'},
+                {name: 'f2', title: 'Пожаловаться на собеседника'}])"
             @send-message="msgSend($event.detail[0])"
             @fetch-messages="fetch()"
+            :styles="JSON.stringify({
+                header: {
+                    background: 'var(--color-info-light)'
+                },
+                content: {
+                    background: 'var(--color-info-semilight)'
+                },
+                footer: {
+                    background: 'var(--color-info-semilight)'
+                }
+            })"
         />
     </div>
 
@@ -29,10 +50,11 @@ export default {
     data() {
         return {
             curUser: '1',
+            showFooter: false,
             room: {
                 roomId: '1',
                 roomName: '',
-                avatar: '',
+                avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png',
                 users: [
                     {
                         _id: '1',
@@ -76,7 +98,9 @@ export default {
 					content: message.content,
 					senderId: this.curUser,
 					timestamp: new Date().toString().substring(16, 21),
-					date: new Date().toDateString()
+					date: new Date().toDateString(),
+                    username: 'Тест проверки',
+                    avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png'
 				}
 			];
 		},
@@ -91,6 +115,6 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 
 </style>
