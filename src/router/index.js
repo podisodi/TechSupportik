@@ -24,10 +24,21 @@ const routes = [
     component: () => import('@/views/ChatsView.vue')
   },
   {
-    path: '/test',
-    name: 'test',
-    component: () => import('@/views/TestView.vue')
-  }
+    path: '/chat/:id',
+    name: 'chat',
+    props: true,
+    component: () => import('@/views/ChatView.vue')
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue')
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('@/views/RegistrationView.vue')
+  },
 ]
 
 const router = new VueRouter({

@@ -6,13 +6,13 @@
         
         <vue-advanced-chat
             class="chat-test"
-            :current-user-id="curUser"
+            :current-user-id="$store.state.userId"
             :messages="JSON.stringify(messages)"
             :messages-loaded="msgLoaded"
             :rooms="JSON.stringify([room])"
             :room-info-enabled="false"
             :single-room="true"
-            :text-messages="JSON.stringify({LAST_SEEN: 'последний раз был(а) на бутылке '})"
+            :text-messages="JSON.stringify({LAST_SEEN: 'последний раз был(а) в сети '})"
             show-emojis="false"
             show-audio="false"
             show-reaction-emojis="false"
@@ -43,47 +43,56 @@ import {register} from 'vue-advanced-chat';
 register();
 
 export default {
-    name: "TestView",
+    name: "ChatView",
     components: {
         BeautyButton,
     },
+    props: {
+        id: String | Number,
+    },
     data() {
         return {
-            curUser: '1',
+            curPage: 0,
+            messagesPerPage: 20,
             showFooter: false,
+            chat: {
+                id: 0, 
+                users: [],
+                messages: []
+            },
             room: {
                 roomId: '1',
                 roomName: '',
                 avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png',
-                users: [
-                    {
-                        _id: '1',
-                        username: 'Михал Палыч Терентьев',
-                        avatar: '',
-                        status: {
-                            state: 'offline',
-                            lastChanged: 'вчера'
-                        }
-                    },
-                    {
-                        _id: '2',
-                        username: 'Наталья Морская Пехота',
-                        avatar: '',
-                        status: {
-                            state: 'online',
-                            lastChanged: 'pizda'
-                        }
-                    },
-                ]
+                users: []
             },
             messages: [],
             msgLoaded: false,
         }
     },
-    created() {
+    async created() {
+        await this.initRoom();
         this.setRoomName();
     },
     methods: {
+        async initRoom() {
+            this.chat = await this.getChat();
+            if(this.chat == null) return;
+
+            this.room.roomId = this.chat.id;
+            this.room.users = this.chat.users.map((user) => {
+                return {
+                    _id: user.id.toString(),
+                    username: user.username,
+                    avatar: 'https://myshmarket.site' + user.avatar.route,
+                    status: {
+                        state: user.isLogged ? 'online' : 'offline',
+                        lastChanged: new Date(user.lastLogoutDate).getUTCDate(),
+                    }
+                }
+            });
+            this.setRoomName();
+        },
         fetch() {
             setTimeout(() => {
                 this.messages = [];
@@ -109,7 +118,28 @@ export default {
             this.setRoomName();
         },
         setRoomName() {
-            this.room.roomName = this.room.users.find(x => x._id !== this.curUser).username;
+            const user = this.chat.users.find(x => x.id !== this.$store.state.userId);
+            this.room.roomName = user.username;
+            this.room.avatar = 'https://myshmarket.site' + user.avatar.route;
+        },
+        async getChat() {
+            try {
+                return (await this.$http.get('chats/' + this.id)).result;
+            } catch (err) {
+                console.log(err);
+                return null;
+            }
+            
+        },
+        async getMessages() {
+            const take = this.messagesPerPage;
+            const skip = this.curPage * this.messagesPerPage;
+            let messages = (await this.$http.get('chats/messages/' + this.chat.id, { params: { take: take, skip: skip } })).result;
+            if(!!messages && messages.length) {
+                this.messages = [...this.messages, ...messages];
+            } else {
+                this.msgLoaded = true;
+            }
         }
     }
 }

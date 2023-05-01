@@ -3,11 +3,15 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import axios from 'axios'
+import FloatingVue from 'floating-vue'
+import 'floating-vue/dist/style.css'
 
 Vue.config.productionTip = false;
 Vue.prototype.$http = axios.create({
-  baseURL: "http://something/api"
+  baseURL: "https://localhost:7164/"
 });
+
+Vue.use(FloatingVue);
 
 new Vue({
   router,
