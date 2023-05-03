@@ -21,7 +21,7 @@ export default {
   border-radius: 12px;
   font-weight: bold;
   font-size: 20px;
-  text-decoration: none;
+  text-decoration: none !important;
   color: black;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.9);
   white-space: nowrap;

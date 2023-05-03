@@ -1,9 +1,44 @@
 <template>
   <div id="app">
+    <cover />
     <h2>Система техподдержки "ЪЫЪ"</h2>
-    <router-view class="app-content" />
+    <h4 class="header-entering" v-if="!!$store.state.userId"> {{ $store.state.userName }} </h4>
+    <router-link to="login" class="header-entering" v-else>
+      <beauty-button text="Войти" look="primary" />
+    </router-link>
+    <router-view class="app-content" v-if="isUserLoaded" />
   </div>
 </template>
+
+<script>
+import Cover from './components/Cover.vue';
+import BeautyButton from './components/BeautyButton.vue';
+
+export default {
+  name: 'App',
+  components: {
+    Cover,
+    BeautyButton,
+  },
+  data() {
+    return {
+      isUserLoaded: false
+    }
+  },
+  created() {
+    this.initUser();
+  },
+  methods: {
+    async initUser() {
+      this.$store.commit('loading', true);
+      await this.$store.dispatch('load');
+      this.$store.commit('loading', false);
+      this.isUserLoaded = true;
+    }
+  }
+}
+</script>
+
 
 <style>
 #app {
@@ -50,5 +85,11 @@ nav a.router-link-exact-active {
 
 .app-content {
   padding-top: 50px;
+}
+
+.header-entering {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 </style>

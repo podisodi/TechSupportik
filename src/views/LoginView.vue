@@ -1,6 +1,6 @@
 <template>
     <div class="wrapper">
-        <auth-component buttonText="Войти" header="Вход" class="auth" @onSign="login(signData)" />
+        <auth-component buttonText="Войти" header="Вход" class="auth" @onSign="login" />
         <h5>Если у вас ещё нет аккаунта, можете <router-link to="register">зарегистрироваться</router-link></h5>
     </div>
 </template>
@@ -15,9 +15,19 @@ export default {
     },
     methods: {
         login(signData) {
+            this.$store.commit('loading', true);
             this.$http.post('users/login?email=' + signData.email + '&password=' + signData.password)
-            .then((resp) => this.$store.login(resp.data))
-            .catch((err) => console.log(err));
+                .then((resp) => {
+                        this.$store.commit('login', {
+                        userId: resp.data.id,
+                        userName: resp.data.surname
+                            + ' ' + resp.data.name
+                            + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic)
+                    });
+                    this.$router.push('/');
+                })
+                .catch((err) => console.log(err))
+                .finally(() => this.$store.commit('loading', false));
         }
     }
 }

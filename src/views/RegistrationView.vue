@@ -37,10 +37,59 @@ export default {
     },
     methods: {
         register(signData) {
-            if(signData.password !== signData.passwordCheck) {
-                this.passwordErrors = ['Пароли не совпадают'];
-                this.passwordCheckErrors = ['Пароли не совпадают'];
+            if(!this.validate(signData)) {
+                return;
             }
+
+            this.$store.commit('loading', true);
+            this.$http.post('users/register', {
+                name: signData.name,
+                surname: signData.surname,
+                patronymic: signData.patr,
+                email: signData.email,
+                password: signData.password,
+                avatarId: 1,
+                departmentId: 1
+            })
+                .then((resp) => this.$store.commit('login', {
+                    userId: resp.data.id,
+                    userName: resp.data.surname
+                        + ' ' + resp.data.name
+                        + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic)
+                }))
+                .catch((err) => console.log(err))
+                .finally(() => this.$store.commit('loading', false));
+        },
+        validate(signData) {
+            let isValid = true;
+
+            if(!signData.name.length) {
+                this.nameErrors = [...this.nameErrors, 'Заполните имя'];
+                isValid = false;
+            }
+            
+            if(!signData.surname.length) {
+                this.surnameErrors = [...this.surnameErrors, 'Заполните фамилию'];
+                isValid = false;
+            }
+
+            if(!signData.email.length) {
+                this.emailErrors = [...this.emailErrors, 'Заполните адрес эл. почты'];
+                isValid = false;
+            }
+
+            if(!signData.password.length) {
+                this.passwordErrors = [...this.passwordErrors, 'Введите пароль'];
+                isValid = false;
+            }
+
+            if(signData.password !== signData.passwordCheck) {
+                this.passwordErrors = [...this.passwordErrors, 'Пароли не совпадают'];
+                this.passwordCheckErrors = [...this.passwordCheckErrors, 'Пароли не совпадают'];
+                isValid = false;
+            }
+
+            return isValid;
         },
         clearErrors() {
             this.nameErrors = [];

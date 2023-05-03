@@ -8,7 +8,8 @@ import 'floating-vue/dist/style.css'
 
 Vue.config.productionTip = false;
 Vue.prototype.$http = axios.create({
-  baseURL: "https://localhost:7164/"
+  baseURL: "https://localhost:7164/",
+  withCredentials: true
 });
 
 Vue.use(FloatingVue);
