@@ -17,25 +17,27 @@ export default {
   },
   data() {
     return {
-      chat: {
-        id: 1,
-        userName: 'Михал Палыч',
-        userDepartment: 'отдел',
-        status: 'wait',
-        problem: 'принтер сломавсь',
-        lastMessage: 'помогите пожождо'
-      },
+      chats: [],
     }
   },
-  computed: {
-    chats: function() {
-        let res = [];
-        for(let i = 0; i < 6; i++) {
-            let chatClone = {...this.chat};
-            chatClone.id = i;
-            res.push(chatClone)
-        }
-      return res;
+  created() {
+    this.initChats();
+  },
+  methods: {
+    initChats() {
+      this.$http.get('requests/byUser')
+        .then((resp) => this.chats = resp.data.map((x) => {
+          const user = x.chat.users.find((u) => u.id != this.$store.state.userId);
+          return {
+            id: x.chatId,
+            userName: user.username,
+            userDepartment: user.department.name,
+            status: x.state,
+            problem: x.problem.name,
+            lastMessage: x.chat.lastMessage.content
+          };
+        }))
+        .catch((err) => console.log(err));
     }
   }
 }

@@ -51,12 +51,15 @@ export default {
                 avatarId: 1,
                 departmentId: 1
             })
-                .then((resp) => this.$store.commit('login', {
-                    userId: resp.data.id,
-                    userName: resp.data.surname
-                        + ' ' + resp.data.name
-                        + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic)
-                }))
+                .then((resp) => {
+                    this.$store.commit('login', {
+                        userId: resp.data.id,
+                        userName: resp.data.surname
+                            + ' ' + resp.data.name
+                            + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic)
+                    });
+                    this.$router.push('/');
+                })
                 .catch((err) => console.log(err))
                 .finally(() => this.$store.commit('loading', false));
         },

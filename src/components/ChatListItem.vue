@@ -20,7 +20,7 @@ export default {
             id: Number,
             userName: String,
             userDepartment: String,
-            status: String,
+            status: Number,
             problem: String,
             lastMessage: String,
         }

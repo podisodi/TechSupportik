@@ -2,7 +2,12 @@
   <div>
     <h3 class="main-title"> С чем у вас возникла проблема? </h3>
     <div class="main-container">
-      <beauty-button class="btn" v-for="(problemType, index) in problemTypes" :key="index" look="secondary" :text="problemType.name" />
+      <beauty-button v-for="problemType in problemTypes"
+        class="btn"
+        :key="problemType.id"
+        look="secondary"
+        :text="problemType.name"
+      />
       <beauty-button class="btn" look="primary" text="Мои обращения" />
     </div>
   </div>
@@ -18,16 +23,18 @@ export default {
   },
   data() {
     return {
-      problemType: {
-        id: 1,
-        name: 'Аппаратное обеспечение'
-      },
+      problemTypes: []
     }
   },
-  computed: {
-    problemTypes: function() {
-      return [this.problemType, this.problemType, this.problemType, this.problemType];
+  methods: {
+    initProblemTypes() {
+      this.$http.get('problems/groups')
+      .then((resp) => this.problemTypes = resp.data)
+      .catch((err) => console.log(err));
     }
+  },
+  created() {
+    this.initProblemTypes();
   }
 }
 </script>

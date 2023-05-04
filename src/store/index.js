@@ -9,7 +9,8 @@ export default new Vuex.Store({
     userName: '',
     isLogging: false,
     isLoading: false,
-    loadingCount: 0
+    loadingCount: 0,
+    problemGroupId: 0
   },
   getters: {
   },
@@ -26,6 +27,9 @@ export default new Vuex.Store({
       state.loadingCount += isLoading ? 1 : -1;
       state.isLoading = state.loadingCount > 0;
     },
+    problemGroup(state, groupId) {
+      state.problemGroupId = groupId;
+    }
   },
   actions: {
     async load({commit}) {

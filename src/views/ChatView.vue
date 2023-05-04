@@ -1,9 +1,5 @@
 <template>
-    <div>
-        <div style="display: flex;">
-            <beauty-button look="primary" :text="curUser" @click="changeUser" />
-        </div>
-        
+    <div>    
         <vue-advanced-chat
             class="chat-test"
             :current-user-id="$store.state.userId"
@@ -48,7 +44,10 @@ export default {
         BeautyButton,
     },
     props: {
-        id: String | Number,
+        id: {
+            type: String | Number,
+            default: 0
+        },
     },
     data() {
         return {
@@ -68,11 +67,17 @@ export default {
             },
             messages: [],
             msgLoaded: false,
+            problems: []
         }
     },
-    async created() {
-        await this.initRoom();
-        this.setRoomName();
+    created() {
+        if(this.id > 0) {
+            this.initRoom();
+        } else {
+            let str = 'Вас приветствует бот техподдержки. Пожалуйста, введите цифру проблемы, которая у вас возникла:';
+            str += '\n1 - Какая-то проблема';
+            this.addBotMessage(str)
+        }
     },
     methods: {
         async initRoom() {
@@ -94,10 +99,13 @@ export default {
             this.setRoomName();
         },
         fetch() {
-            setTimeout(() => {
-                this.messages = [];
-                this.msgLoaded = true;
-            });
+            if(!this.id) {
+                setTimeout(() => {
+                    this.msgLoaded = true;
+                });
+            } else {
+                this.getMessages();
+            }
         },
         msgSend(message) {
 			this.messages = [
@@ -140,6 +148,21 @@ export default {
             } else {
                 this.msgLoaded = true;
             }
+        },
+        addBotMessage(content) {
+            this.messages = [...this.messages, {
+                _id: this.messages.length,
+                content: content,
+                senderId: 0,
+                timestamp: new Date().toString().substring(16, 21),
+                date: new Date().toDateString(),
+                avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png'
+            }]
+        },
+        getProblems() {
+            this.$http.get(`problems/groups/${this.$store.state.problemGroupId}`)
+                .then((resp) => this.problems = resp.data)
+                .catch((err) => console.log(err));
         }
     }
 }

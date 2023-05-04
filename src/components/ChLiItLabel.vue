@@ -1,7 +1,7 @@
 <template>
 <div class="main-wrapper">
     <div>
-        <span class="txt-left">{{ userName}}</span>,<span class="depart-st"> {{departament }} </span>
+        <span class="txt-left">{{ userName }}</span>,<span class="depart-st"> {{ departament }} </span>
     </div>
     <div>
         <span>Статус обращения: </span><span :class="'status status-' + status">{{ statusStr }}</span>
@@ -10,22 +10,19 @@
 </template>
 
 <script>
+import '@/js/request-statuses'
+import { statusToRusString } from '@/js/request-statuses';
+
 export default {
     name: 'ChatListLabel',
     props: {
         userName: String,
         departament: String,
-        status: String,
+        status: Number,
     },
     computed: {
         statusStr: function() {
-            switch (this.status) {
-                case 'start': return 'Начато';
-                case 'wait': return 'Ждет решения';
-                case 'finish': return 'Завершено';
-                case 'reject': return 'Отклонено';
-                default: return 'Не определен';
-            }
+            return statusToRusString(status);
         }
     }
 }
