@@ -51,6 +51,7 @@ export default {
     },
     data() {
         return {
+            chatId: this.id,
             curPage: 0,
             messagesPerPage: 20,
             showFooter: false,
@@ -67,16 +68,15 @@ export default {
             },
             messages: [],
             msgLoaded: false,
-            problems: []
+            problems: [],
+            createRequest: false
         }
     },
     created() {
-        if(this.id > 0) {
+        if (this.id > 0) {
             this.initRoom();
         } else {
-            let str = 'Вас приветствует бот техподдержки. Пожалуйста, введите цифру проблемы, которая у вас возникла:';
-            str += '\n1 - Какая-то проблема';
-            this.addBotMessage(str)
+            this.startDialog();
         }
     },
     methods: {
@@ -108,36 +108,43 @@ export default {
             }
         },
         msgSend(message) {
-			this.messages = [
-				...this.messages,
-				{
-					_id: this.messages.length,
-					content: message.content,
-					senderId: this.curUser,
-					timestamp: new Date().toString().substring(16, 21),
-					date: new Date().toDateString(),
-                    username: 'Тест проверки',
-                    avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png'
-				}
-			];
+            if(this.id > 0) {
+                this.newMessage(message.content);
+            } else if (this.createRequest) {
+                this.addUserMessage(message.content);
+                const problemId = Number(message.content);
+                if(problemId == NaN) {
+                    this.addBotMessage('Пожалуйста, введите цифру из списка');
+                    return;
+                }
+
+                this.$http.post(`requests?problemId=${problemId}`)
+                    .then((resp) => {
+                        this.chatId = resp.data.chatId;
+                        this.initRoom();
+                        this.addBotMessage('Заявка успешно создана! Скоро подключится специалист...');
+                    })
+                    .catch((err) => console.log(err));
+            }
 		},
-        changeUser() {
-            this.curUser = this.curUser == '1' ? '2' : '1';
-            this.setRoomName();
-        },
         setRoomName() {
             const user = this.chat.users.find(x => x.id !== this.$store.state.userId);
-            this.room.roomName = user.username;
-            this.room.avatar = 'https://myshmarket.site' + user.avatar.route;
+            if(user) {
+                this.room.roomName = user.username;
+                this.room.avatar = 'https://myshmarket.site' + user.avatar.route;
+            } else {
+                this.room.roomName = 'Бот техподдержки';
+                this.room.avatar = 'https://myshmarket.site/assets/images/uploaded/image20.png';
+            }
+            
         },
         async getChat() {
             try {
-                return (await this.$http.get('chats/' + this.id)).result;
+                return (await this.$http.get('chats/' + this.chatId)).result;
             } catch (err) {
                 console.log(err);
                 return null;
             }
-            
         },
         async getMessages() {
             const take = this.messagesPerPage;
@@ -157,12 +164,45 @@ export default {
                 timestamp: new Date().toString().substring(16, 21),
                 date: new Date().toDateString(),
                 avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png'
+            }];
+        },
+        addUserMessage(content) {
+            this.messages = [...this.messages, {
+                _id: this.messages.length,
+                content: content,
+                senderId: this.$store.state.userId,
+                timestamp: new Date().toString().substring(16, 21),
+                date: new Date().toDateString(),
+                avatar: `https://myshmarket.site${this.$store.state.userAvatar}`
             }]
         },
-        getProblems() {
-            this.$http.get(`problems/groups/${this.$store.state.problemGroupId}`)
+        async startDialog() {
+            await this.getProblems();
+            let str = 'Вас приветствует бот техподдержки. Пожалуйста, введите цифру проблемы, которая у вас возникла:';
+            this.problems.forEach((x, i) => str += `\n${i+1} - ${x.name}`);
+            this.addBotMessage(str);
+            this.createRequest = true;
+        },
+        async getProblems() {
+            await this.$http.get(`problems/groups/${this.$store.state.problemGroupId}`)
                 .then((resp) => this.problems = resp.data)
                 .catch((err) => console.log(err));
+        },
+        newMessage(content) {
+            this.$http.post(`chats/messages/new/${this.id}`, {content: content})
+            .then((resp) => {
+                const msg = resp.data;
+                this.messages = [...this.messages, {
+                    _id: msg.id,
+					content: msg.content,
+					senderId: msg.senderId,
+					timestamp: msg.timestamp,
+					date: msg.date.toString(),
+                    username: '',
+                    avatar: 'https://myshmarket.site' + msg.avatar.route
+                }];
+            })
+            .catch((err) => console.log(err));
         }
     }
 }

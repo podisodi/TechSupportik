@@ -22,7 +22,8 @@ export default {
                         userId: resp.data.id,
                         userName: resp.data.surname
                             + ' ' + resp.data.name
-                            + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic)
+                            + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic),
+                        userAvatar: resp.data.avatar.route
                     });
                     this.$router.push('/');
                 })

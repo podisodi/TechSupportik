@@ -7,6 +7,7 @@
         :key="problemType.id"
         look="secondary"
         :text="problemType.name"
+        @click="goToProblemChat(problemType.id)"
       />
       <beauty-button class="btn" look="primary" text="Мои обращения" />
     </div>
@@ -31,6 +32,10 @@ export default {
       this.$http.get('problems/groups')
       .then((resp) => this.problemTypes = resp.data)
       .catch((err) => console.log(err));
+    },
+    goToProblemChat(problemId) {
+      this.$store.commit('problemGroup', problemId);
+      this.$router.push('/chat/0');
     }
   },
   created() {
