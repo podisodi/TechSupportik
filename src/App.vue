@@ -1,8 +1,12 @@
 <template>
   <div id="app">
     <cover />
-    <h2>Система техподдержки "ЪЫЪ"</h2>
-    <h4 class="header-entering" v-if="!!$store.state.userId"> {{ $store.state.userName }} </h4>
+    <router-link to="/"><h2>Система техподдержки "ЪЫЪ"</h2></router-link>
+    <div v-if="!!$store.state.userId" class="header-entering">
+      <div style="font-weight: bold;"> {{ $store.state.userName }} </div>
+      <div class="header-link" @click="logout">Выход</div>
+    </div>
+    
     <router-link to="login" class="header-entering" v-else>
       <beauty-button text="Войти" look="primary" />
     </router-link>
@@ -34,6 +38,11 @@ export default {
       await this.$store.dispatch('load');
       this.$store.commit('loading', false);
       this.isUserLoaded = true;
+    },
+    logout() {
+      this.$http.post('users/logout')
+      .then(() => this.$store.commit('logout'))
+      .catch((err) => console.log(err));
     }
   }
 }
@@ -74,6 +83,11 @@ nav {
   padding: 30px;
 }
 
+a {
+  text-decoration: none;
+  color: black;
+}
+
 nav a {
   font-weight: bold;
   color: #2c3e50;
@@ -91,5 +105,16 @@ nav a.router-link-exact-active {
   position: absolute;
   top: 10px;
   right: 10px;
+}
+
+.header-link {
+  cursor: pointer;
+  color: var(--color-primary-dark);
+  transition: .3s;
+  text-align: end;
+}
+
+.header-link:hover {
+  color: white;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="auth-wrapper">
-    <Keypress key-event="keyup" :key-code="13" @success="onSign" />
-    <div class="auth-header">
+    <keypress key-event="keyup" :key-code="13" @success="onSign" />
+    <div class="auth-header" @click="test">
         {{ header }}
     </div>
     <div class="auth-body">
@@ -38,6 +38,15 @@
             :class="{ 'input-err': !!patrErrors.length }"
             @focus="$emit('touch')"
         />
+        <v-select
+            :options="specializations"
+            :loading="specializationsLoading"
+            @search="getSpecializations"
+            style="width: 100%;"
+            placeholder="Специальность"
+            label="name"
+            v-model="signData.specialization"
+        ></v-select>
         <input
             v-model="signData.email"
             placeholder="Электронная почта"
@@ -89,12 +98,15 @@
 <script>
 import BeautyButton from './BeautyButton.vue';
 import Keypress from 'vue-keypress';
+import vSelect from "vue-select";
+import 'vue-select/dist/vue-select.css';
 
 export default {
     name: "AuthComponent",
     components: {
         BeautyButton,
         Keypress,
+        vSelect,
     },
     props: {
         header: String,
@@ -141,19 +153,35 @@ export default {
                 name: '',
                 surname: '',
                 patr: '',
-            }
+                specialization: null,
+            },
+            specializations: [],
+            specializationsLoading: true,
         }
+    },
+    created() {
+        this.getSpecializations('');
     },
     methods: {
         onSign() {
             this.$emit('touch');
             this.$emit('onSign', this.signData);
+        },
+        getSpecializations(search, _ = null) {
+            this.specializationsLoading = true;
+            this.$http.get(`specializations?search=${search}`)
+            .then((resp) => this.specializations = resp.data)
+            .catch((err) => console.log(err))
+            .finally(() => this.specializationsLoading = false);
+        },
+        test() {
+            console.log(this.signData);
         }
     }
 }
 </script>
 
-<style>
+<style scoped>
 .auth-wrapper {
     background-color: var(--color-info-semilight);
     border-radius: 14px;
@@ -174,13 +202,13 @@ export default {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding-top: 30px;
     gap: 15px;
     box-sizing: border-box;
+    padding: 30px 15% 0 15%;
 }
 
 .auth-body > input {
-    width: 70%;
+    width: 100%;
     border-radius: 10px;
     border: none;
     box-sizing: border-box;

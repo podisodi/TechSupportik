@@ -49,7 +49,10 @@ export default {
                 email: signData.email,
                 password: signData.password,
                 avatarId: 1,
-                departmentId: 1
+                departmentId: 1,
+                specializations: [{
+                    id: signData.specialization.id
+                }],
             })
                 .then((resp) => {
                     this.$store.commit('login', {
