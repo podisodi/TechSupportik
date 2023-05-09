@@ -11,7 +11,8 @@ export default new Vuex.Store({
     isLogging: false,
     isLoading: false,
     loadingCount: 0,
-    problemGroupId: 0
+    problemGroupId: 0,
+    isSpecialist: false,
   },
   getters: {
   },
@@ -20,11 +21,13 @@ export default new Vuex.Store({
       state.userId = payload.userId;
       state.userName = payload.userName;
       state.userAvatar = payload.userAvatar;
+      state.isSpecialist = payload.isSpecialist;
     },
     logout(state) {
       state.userId = 0;
       state.userName = '';
       state.userAvatar = '';
+      state.isSpecialist = false;
     },
     loading(state, isLoading) {
       state.loadingCount += isLoading ? 1 : -1;
@@ -40,7 +43,8 @@ export default new Vuex.Store({
         .then((resp) => commit('login', {
           userId: resp.data.id,
           userName: resp.data.surname + ' ' + resp.data.name + ' ' + resp.data.patronymic,
-          userAvatar: resp.data.avatar.route
+          userAvatar: resp.data.avatar.route,
+          isSpecialist: resp.data.isSpecialist,
         }))
         .catch((err) => {
           commit('logout');

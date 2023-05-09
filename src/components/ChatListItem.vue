@@ -1,7 +1,7 @@
 <template>
-    <div>
+    <div style="cursor: pointer" @click="emit('click', $event)">
         <ch-li-it-label style="width: 100%;" :userName="chat.userName" :departament="chat.userDepartment" :status="chat.status" />
-        <ch-li-it-box style="width: 100%;" :id="chat.id" :title="chat.problem" :lastMessage="chat.lastMessage" />
+        <ch-li-it-box style="width: 100%;" :id="chat.id" :title="chat.problem" :lastMessage="chat.lastMessage" :chosen="chosen" />
     </div>
 </template>
 
@@ -23,6 +23,12 @@ export default {
             status: Number,
             problem: String,
             lastMessage: String,
+        },
+        chosen: Boolean,
+    },
+    methods: {
+        emit(emitter) {
+            this.$emit(emitter);
         }
     }
 }

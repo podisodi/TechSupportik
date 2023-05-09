@@ -41,7 +41,10 @@ export default {
     },
     logout() {
       this.$http.post('users/logout')
-      .then(() => this.$store.commit('logout'))
+      .then(() => {
+        this.$store.commit('logout');
+        this.$router.push('/login');
+      })
       .catch((err) => console.log(err));
     }
   }
@@ -56,6 +59,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   /* text-align: center; */
   color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 body {
@@ -100,6 +106,7 @@ nav a.router-link-exact-active {
 .app-content {
   padding-top: 50px;
   padding-bottom: 50px;
+  width: 100%;
 }
 
 .header-entering {

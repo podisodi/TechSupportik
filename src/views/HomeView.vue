@@ -1,15 +1,18 @@
 <template>
   <div>
-    <h3 class="main-title"> С чем у вас возникла проблема? </h3>
+    <h3 class="main-title" v-if="!$store.state.isSpecialist"> С чем у вас возникла проблема? </h3>
     <div class="main-container">
-      <beauty-button v-for="problemType in problemTypes"
-        class="btn"
-        :key="problemType.id"
-        look="secondary"
-        :text="problemType.name"
-        @click="goToProblemChat(problemType.id)"
-      />
-      <router-link to="/chats" class="btn"><beauty-button style="width: 100%;height: 100%" look="primary" text="Мои обращения" /></router-link>
+      <div class="sub-sontainer" v-if="!$store.state.isSpecialist">
+        <beauty-button v-for="problemType in problemTypes"
+          class="btn"
+          :key="problemType.id"
+          look="secondary"
+          :text="problemType.name"
+          @click="goToProblemChat(problemType.id)"
+        />
+      </div>
+      
+      <beauty-button class="btn-half" look="primary" text="Мои обращения" @click="$router.push('/chats')" />
     </div>
   </div>
 </template>
@@ -36,11 +39,11 @@ export default {
     goToProblemChat(problemId) {
       this.$store.commit('problemGroup', problemId);
       this.$router.push('/chat/0');
-    }
+    },
   },
   created() {
     this.initProblemTypes();
-  }
+  },
 }
 </script>
 <style scoped>
@@ -49,8 +52,17 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 40px;
+}
+
+.sub-sontainer {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 20px;
 }
+
 .main-title{
   text-align: center; 
   padding-top: 35px;
@@ -58,6 +70,11 @@ export default {
   color: rgb(84, 10, 47);
 }
 .btn {
+  width: 100%;
+  height: 4em;
+}
+
+.btn-half {
   width: 50%;
   height: 4em;
 }

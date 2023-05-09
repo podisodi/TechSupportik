@@ -1,21 +1,36 @@
 <template>
   <div class="chats-background">
-     <div>
-        <h2 class="chats-title"> Мои обращения </h2>
-     </div>
-     <div class="list-wrapper">
-      <chat-list-item v-for="item in chats" :key="item.id" :chat="item" style="margin-top: 30px;" />
-     </div>
+    <div>
+      <h2 class="chats-title"> Мои обращения </h2>
+    </div>
+    <div v-if="$store.state.isSpecialist && chats.some((x) => x.chosen)" class="set-status-btns">
+      <span>Установить статус:</span>
+      <beauty-button class="status-btn" look="primary" text="Начато" @click="setStatuses(1)" />
+      <beauty-button class="status-btn" look="primary" text="Ждет решения" @click="setStatuses(2)" />
+      <beauty-button class="status-btn" look="primary" text="Завершено" @click="setStatuses(3)" />
+      <beauty-button class="status-btn" look="primary" text="Отклонено" @click="setStatuses(4)" /> 
+    </div>
+    <div class="list-wrapper">
+      <chat-list-item v-for="(item, index) in chats"
+        :key="item.id"
+        :chat="item"
+        :chosen="item.chosen"
+        style="margin-top: 30px;"
+        @click="chooseChat(index)"
+      />
+    </div>
   </div>
  </template>
 
 <script>
-import ChatListItem from './ChatListItem.vue'
+import ChatListItem from './ChatListItem.vue';
+import BeautyButton from './BeautyButton.vue';
 
 export default {
-    name: 'ChatList',
-    components: {
-        ChatListItem,
+  name: 'ChatList',
+  components: {
+    ChatListItem,
+    BeautyButton,
   },
   data() {
     return {
@@ -39,8 +54,18 @@ export default {
         userDepartment: u?.department.name,
         status: request.state,
         problem: request.problem.name,
-        lastMessage: request.chat.lastMessage?.content
+        lastMessage: request.chat.lastMessage?.content,
+        chosen: false,
+        requestId: request.id
       }
+    },
+    chooseChat(i) {
+      this.chats[i].chosen = !this.chats[i].chosen;
+    },
+    setStatuses(newStatus) {
+      this.$http.put('requests/statuses?newStatus=' + newStatus, this.chats.filter((x) => x.chosen).map((x) => x.requestId))
+      .then(() => this.initChats())
+      .catch((err) => console.log(err));
     }
   }
 }
@@ -60,5 +85,15 @@ export default {
 
 .list-wrapper {
   padding: 20px 35px 20px 35px;
+}
+
+.set-status-btns {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.status-btn {
+  font-size: 14px;
 }
 </style>

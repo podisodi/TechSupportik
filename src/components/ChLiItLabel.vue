@@ -56,16 +56,16 @@ export default {
     font-style: italic;
     font-weight: bold;
 }
-.status-start{
+.status-accept {
     color: rgb(199, 120, 10);
 }
-.status-finish{
-    color: rgb(13, 199, 10);
+.status-complete {
+    color: rgb(6, 109, 5);
 }
-.status-wait{
+.status-waiting {
     color: rgb(60, 10, 199);
 }
-.status-reject{
+.status-decline {
     color: rgb(199, 48, 10);
 }
 </style>

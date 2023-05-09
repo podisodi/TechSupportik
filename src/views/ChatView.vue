@@ -16,6 +16,7 @@
                 {name: 'f1', title: 'Убрать уведомления'},
                 {name: 'f2', title: 'Пожаловаться на собеседника'}])"
             @send-message="msgSend($event.detail[0])"
+            @delete-message="msgDel($event.detail[0].message)"
             @fetch-messages="fetch()"
             :styles="JSON.stringify({
                 header: {
@@ -74,6 +75,8 @@ export default {
             msgLoaded: false,
             problems: [],
             createRequest: false,
+            request: null,
+            hasSolverMessages: false,
         }
     },
     created() {
@@ -116,10 +119,20 @@ export default {
                         }
                     }
                 });
+                await this.initRequest();
             }
             
             this.setRoomName();
             this.isLoaded = true;
+        },
+        initRequest() {
+            this.$http.get('requests/byChat/' + this.chatId)
+            .then((resp) => this.request = resp.data)
+            .catch((err) => console.log(err));
+
+            this.$http.get('chats/solverWrote/' + this.chatId)
+            .then((resp) => this.hasSolverMessages = resp.data)
+            .catch((err) => console.log(err));
         },
         fetch() {
             if(this.id == 0 || this.id == '0') {
@@ -131,7 +144,6 @@ export default {
             }
         },
         msgSend(message) {
-            if(this.socket) this.socket.send(message.content);
             if(this.id > 0) {
                 this.newMessage(message.content);
             } else if (this.createRequest) {
@@ -155,6 +167,13 @@ export default {
                     .catch((err) => console.log(err));
             }
 		},
+        msgDel(message) {
+            if(this.id <= 0) return;
+
+            this.$http.delete('chats/messages/' + message._id)
+            .then(() => this.messages = this.messages.filter((x) => x._id != message._id))
+            .catch((err) => console.log(err));
+        },
         setRoomName() {
             const user = this.room.users.find(x => x._id != this.$store.state.userId);
             if(user) {
@@ -234,6 +253,11 @@ export default {
                 const msg = resp.data;
                 if(msg.id > this.maxMsgId) this.maxMsgId = msg.id;
                 this.messages = append(this.messages, this.mapMessage(msg));
+                if(!this.hasSolverMessages && this.request.state == 1 && this.isSolverMessage(msg)) {
+                    this.$http.put('requests/status/' + this.request.id + '?newStatus=2')
+                    .then((resp) => this.request.state = resp.data.state)
+                    .catch((err) => console.log(err));
+                }
             })
             .catch((err) => console.log(err));
         },
@@ -252,15 +276,11 @@ export default {
             if(this.chat.id <= 0) return;
 
             try {
-                console.log('check messages');
                 let messages = (await this.$http.get(
                     'chats/messages/' + this.chat.id, { params: { take: 10, skip: 0 } })).data
                     .map(this.mapMessage);
                 
                 let msgToAdd = messages.filter((x) => x._id > this.maxMsgId);
-                console.log('max id: ' + this.maxMsgId);
-                console.log('messages to add:');
-                console.log(msgToAdd);
                 if(msgToAdd.length > 0) {
                     this.messages = append(this.messages, msgToAdd);
                     msgToAdd.forEach((x) => {
@@ -273,6 +293,15 @@ export default {
             catch (err) {
                 console.log(err);
             }
+        },
+        isSolverMessage(msg) {
+            let senderId = msg.senderId;
+            if(senderId instanceof String) {
+                senderId = Number(senderId);
+            }
+
+            const u = this.chat.users.find((x) => x.id == senderId);
+            return u && u.isSpecialist;
         }
     }
 }

@@ -1,9 +1,9 @@
 <template>
-  <div class="cli-box">
+  <div class="cli-box" :class="{'chosen': chosen}">
     <div class="cli-text">
         <span class="title-problem">{{ title }}: </span><span class="last-message">{{ lastMessage }}</span>
     </div>
-    <beauty-button class="btn-chat-list" look="primary" text="Продолжить" @click="goToChat(id)" />
+    <beauty-button class="btn-chat-list" look="primary" text="Продолжить" @click="goToChat($event, id)" />
   </div>
 </template>
 
@@ -16,12 +16,14 @@ export default {
         id: Number,
         title: String,
         lastMessage: String,
+        chosen: Boolean
     },
     components: {
         BeautyButton,
     },
     methods: {
-        goToChat(id) {
+        goToChat($event, id) {
+            $event.stopPropagation();
             this.$router.push('/chat/' + id);
         }
     }
@@ -39,6 +41,9 @@ export default {
     padding: 5px;
     align-items: center;
     height: 4em;
+}
+.chosen {
+    background-color: rgb(46, 67, 99);
 }
 .cli-text {
     white-space: nowrap;
