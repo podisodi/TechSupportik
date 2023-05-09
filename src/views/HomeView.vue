@@ -9,7 +9,7 @@
         :text="problemType.name"
         @click="goToProblemChat(problemType.id)"
       />
-      <beauty-button class="btn" look="primary" text="Мои обращения" />
+      <router-link to="/chats" class="btn"><beauty-button style="width: 100%;height: 100%" look="primary" text="Мои обращения" /></router-link>
     </div>
   </div>
 </template>

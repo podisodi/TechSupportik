@@ -49,7 +49,7 @@ export default {
                 email: signData.email,
                 password: signData.password,
                 avatarId: 1,
-                departmentId: 1,
+                departmentId: signData.department.id,
                 specializations: [{
                     id: signData.specialization.id
                 }],
@@ -60,7 +60,7 @@ export default {
                         userName: resp.data.surname
                             + ' ' + resp.data.name
                             + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic),
-                        userAvatar: resp.data.avatar.route
+                        userAvatar: 'https://myshmarket.site' + resp.data.avatar.route
                     });
                     this.$router.push('/');
                 })

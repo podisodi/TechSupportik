@@ -1,17 +1,17 @@
 <template>
 <div class="main-wrapper">
     <div>
-        <span class="txt-left">{{ userName }}</span>,<span class="depart-st"> {{ departament }} </span>
+        <span class="txt-left" v-if="userName">{{ userName }},</span><span class="depart-st"> {{ departament }} </span>
     </div>
     <div>
-        <span>Статус обращения: </span><span :class="'status status-' + status">{{ statusStr }}</span>
+        <span>Статус обращения: </span><span :class="'status status-' + statusEng">{{ statusStr }}</span>
     </div>
 </div>
 </template>
 
 <script>
 import '@/js/request-statuses'
-import { statusToRusString } from '@/js/request-statuses';
+import { statusToString, statusToRusString } from '@/js/request-statuses';
 
 export default {
     name: 'ChatListLabel',
@@ -21,8 +21,11 @@ export default {
         status: Number,
     },
     computed: {
+        statusEng: function() {
+            return statusToString(this.status);
+        },
         statusStr: function() {
-            return statusToRusString(status);
+            return statusToRusString(this.status);
         }
     }
 }

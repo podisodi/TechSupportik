@@ -23,7 +23,7 @@ export default {
                         userName: resp.data.surname
                             + ' ' + resp.data.name
                             + (!resp.data.patronymic.length ? '' : ' ' + resp.data.patronymic),
-                        userAvatar: resp.data.avatar.route
+                        userAvatar: 'https://myshmarket.site' + resp.data.avatar.route
                     });
                     this.$router.push('/');
                 })

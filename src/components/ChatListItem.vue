@@ -1,7 +1,7 @@
 <template>
     <div>
         <ch-li-it-label style="width: 100%;" :userName="chat.userName" :departament="chat.userDepartment" :status="chat.status" />
-        <ch-li-it-box style="width: 100%;" :title="chat.problem" :lastMessage="chat.lastMessage" />
+        <ch-li-it-box style="width: 100%;" :id="chat.id" :title="chat.problem" :lastMessage="chat.lastMessage" />
     </div>
 </template>
 

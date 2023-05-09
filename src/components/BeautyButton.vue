@@ -1,7 +1,7 @@
 <template>
-  <button :class="'btn btn-primary btn-' + look + (disabled ? ' disabled btn-' + look + '-disabled' : '')" v-on:click="$emit('click')" >
+  <div :class="'btn btn-primary btn-' + look + (disabled ? ' disabled btn-' + look + '-disabled' : '')" v-on:click="$emit('click')" >
     {{ text }}
-  </button>
+  </div>
 </template>
 
 <script>
@@ -19,14 +19,16 @@ export default {
 .btn {
   padding: 10px;
   border-radius: 12px;
+  font-size: 22px;
   font-weight: bold;
-  font-size: 20px;
   text-decoration: none !important;
   color: black;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
   cursor: pointer;
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   width: fit-content;
   user-select: none;

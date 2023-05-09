@@ -38,7 +38,7 @@
             :class="{ 'input-err': !!patrErrors.length }"
             @focus="$emit('touch')"
         />
-        <v-select
+        <v-select v-if="register"
             :options="specializations"
             :loading="specializationsLoading"
             @search="getSpecializations"
@@ -46,6 +46,15 @@
             placeholder="Специальность"
             label="name"
             v-model="signData.specialization"
+        ></v-select>
+        <v-select v-if="register"
+            :options="departments"
+            :loading="departmentsLoading"
+            @search="getDepartments"
+            style="width: 100%;"
+            placeholder="Отдел"
+            label="name"
+            v-model="signData.department"
         ></v-select>
         <input
             v-model="signData.email"
@@ -154,13 +163,17 @@ export default {
                 surname: '',
                 patr: '',
                 specialization: null,
+                department: null
             },
             specializations: [],
             specializationsLoading: true,
+            departments: [],
+            departmentsLoading: true,
         }
     },
     created() {
         this.getSpecializations('');
+        this.getDepartments('');
     },
     methods: {
         onSign() {
@@ -173,6 +186,13 @@ export default {
             .then((resp) => this.specializations = resp.data)
             .catch((err) => console.log(err))
             .finally(() => this.specializationsLoading = false);
+        },
+        getDepartments(search, _ = null) {
+            this.departmentsLoading = true;
+            this.$http.get(`departments?search=${search}`)
+                .then((resp) => this.departments = resp.data)
+                .catch((err) => console.log(err))
+                .finally(() => this.departmentsLoading = false);
         },
         test() {
             console.log(this.signData);

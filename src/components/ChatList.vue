@@ -1,9 +1,11 @@
 <template>
   <div class="chats-background">
      <div>
-        <h3 class="chats-title"> Мои обращения </h3>
+        <h2 class="chats-title"> Мои обращения </h2>
      </div>
-     <chat-list-item v-for="item in chats" :key="item.id" :chat="item" />
+     <div class="list-wrapper">
+      <chat-list-item v-for="item in chats" :key="item.id" :chat="item" style="margin-top: 30px;" />
+     </div>
   </div>
  </template>
 
@@ -26,18 +28,19 @@ export default {
   methods: {
     initChats() {
       this.$http.get('requests/byUser')
-        .then((resp) => this.chats = resp.data.map((x) => {
-          const user = x.chat.users.find((u) => u.id != this.$store.state.userId);
-          return {
-            id: x.chatId,
-            userName: user.username,
-            userDepartment: user.department.name,
-            status: x.state,
-            problem: x.problem.name,
-            lastMessage: x.chat.lastMessage.content
-          };
-        }))
+        .then((resp) => this.chats = resp.data.map(this.mapChat))
         .catch((err) => console.log(err));
+    },
+    mapChat(request) {
+      const u = request.chat.users.find((u) => u.id != this.$store.state.userId);
+      return {
+        id: request.chat.id,
+        userName: u?.username,
+        userDepartment: u?.department.name,
+        status: request.state,
+        problem: request.problem.name,
+        lastMessage: request.chat.lastMessage?.content
+      }
     }
   }
 }
@@ -45,13 +48,17 @@ export default {
 
 <style scoped>
 .chats-title{
-  text-align: center; 
-  padding-top: 35px;
-  font-size: 22px;
+  text-align: center;
   color: black;
 
 }
-.chats-background{
+.chats-background {
   background-color:rgb(147, 181, 233);
+  border-radius: 14px;
+  box-shadow: rgba(0,0,0,0.3) 0px 5px 10px 0px;
+}
+
+.list-wrapper {
+  padding: 20px 35px 20px 35px;
 }
 </style>

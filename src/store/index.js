@@ -19,7 +19,7 @@ export default new Vuex.Store({
     login(state, payload) {
       state.userId = payload.userId;
       state.userName = payload.userName;
-      state.userAvatar = payload.avatar;
+      state.userAvatar = payload.userAvatar;
     },
     logout(state) {
       state.userId = 0;

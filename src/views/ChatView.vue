@@ -1,8 +1,8 @@
 <template>
     <div>    
-        <vue-advanced-chat
+        <vue-advanced-chat v-if="isLoaded"
             class="chat-test"
-            :current-user-id="$store.state.userId"
+            :current-user-id="$store.state.userId.toString()"
             :messages="JSON.stringify(messages)"
             :messages-loaded="msgLoaded"
             :rooms="JSON.stringify([room])"
@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import { append, appendFront } from '@/js/append';
 import BeautyButton from '@/components/BeautyButton.vue';
 import {register} from 'vue-advanced-chat';
 register();
@@ -52,6 +53,7 @@ export default {
     data() {
         return {
             chatId: this.id,
+            isLoaded: false,
             curPage: 0,
             messagesPerPage: 20,
             showFooter: false,
@@ -67,39 +69,60 @@ export default {
                 users: []
             },
             messages: [],
+            isGotMessages: false,
+            maxMsgId: 0,
             msgLoaded: false,
             problems: [],
-            createRequest: false
+            createRequest: false,
         }
     },
     created() {
-        if (this.id > 0) {
-            this.initRoom();
-        } else {
-            this.startDialog();
-        }
+        this.initRoom();
     },
     methods: {
         async initRoom() {
             this.chat = await this.getChat();
-            if(this.chat == null) return;
-
-            this.room.roomId = this.chat.id;
-            this.room.users = this.chat.users.map((user) => {
-                return {
-                    _id: user.id.toString(),
-                    username: user.username,
-                    avatar: 'https://myshmarket.site' + user.avatar.route,
-                    status: {
-                        state: user.isLogged ? 'online' : 'offline',
-                        lastChanged: new Date(user.lastLogoutDate).getUTCDate(),
+            if(!this.chat) {
+                this.room.users = [
+                    {
+                        _id: '0',
+                        username: 'Бот техподдержки',
+                        avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png',
+                        status: {
+                            state: 'online'
+                        }
+                    },
+                    {
+                        _id: this.$store.state.userId.toString(),
+                        username: this.$store.state.userName,
+                        avatar: this.$store.state.userAvatar,
+                        status: {
+                            state: 'online'
+                        }
                     }
-                }
-            });
+                ];
+
+                this.startDialog();
+            } else {
+                this.room.roomId = this.chat.id.toString();
+                this.room.users = this.chat.users.map((user) => {
+                    return {
+                        _id: user.id.toString(),
+                        username: user.username,
+                        avatar: 'https://myshmarket.site' + user.avatar.route,
+                        status: {
+                            state: user.isLogged ? 'online' : 'offline',
+                            lastChanged: new Date(user.lastLogoutDate).toLocaleString('ru-RU'),
+                        }
+                    }
+                });
+            }
+            
             this.setRoomName();
+            this.isLoaded = true;
         },
         fetch() {
-            if(!this.id) {
+            if(this.id == 0 || this.id == '0') {
                 setTimeout(() => {
                     this.msgLoaded = true;
                 });
@@ -108,15 +131,20 @@ export default {
             }
         },
         msgSend(message) {
+            if(this.socket) this.socket.send(message.content);
             if(this.id > 0) {
                 this.newMessage(message.content);
             } else if (this.createRequest) {
                 this.addUserMessage(message.content);
-                const problemId = Number(message.content);
-                if(problemId == NaN) {
+                const problemIndex = Number(message.content);
+                if(
+                    problemIndex == NaN
+                    || problemIndex > this.problems.length
+                ) {
                     this.addBotMessage('Пожалуйста, введите цифру из списка');
                     return;
                 }
+                const problemId = this.problems[problemIndex - 1].id;
 
                 this.$http.post(`requests?problemId=${problemId}`)
                     .then((resp) => {
@@ -128,53 +156,65 @@ export default {
             }
 		},
         setRoomName() {
-            const user = this.chat.users.find(x => x.id !== this.$store.state.userId);
+            const user = this.room.users.find(x => x._id != this.$store.state.userId);
             if(user) {
                 this.room.roomName = user.username;
-                this.room.avatar = 'https://myshmarket.site' + user.avatar.route;
+                this.room.avatar = user.avatar;
             } else {
                 this.room.roomName = 'Бот техподдержки';
                 this.room.avatar = 'https://myshmarket.site/assets/images/uploaded/image20.png';
             }
-            
         },
         async getChat() {
             try {
-                return (await this.$http.get('chats/' + this.chatId)).result;
+                const res = await this.$http.get('chats/' + this.chatId);
+                return res.data;
             } catch (err) {
                 console.log(err);
                 return null;
             }
         },
         async getMessages() {
+            this.msgLoaded = false;
             const take = this.messagesPerPage;
             const skip = this.curPage * this.messagesPerPage;
-            let messages = (await this.$http.get('chats/messages/' + this.chat.id, { params: { take: take, skip: skip } })).result;
-            if(!!messages && messages.length) {
-                this.messages = [...this.messages, ...messages];
-            } else {
+            let messages = (await this.$http.get(
+                'chats/messages/' + this.chat.id, { params: { take: take, skip: skip } })).data
+                .map(this.mapMessage);
+            if(messages && messages.length) {
+                messages.forEach((x) => {
+                    if(this.maxMsgId < x._id) this.maxMsgId = x._id;
+                });
+                this.messages = appendFront(this.messages, messages);
+                this.curPage++;
+            }
+
+            if(!messages || messages.length < take) {
                 this.msgLoaded = true;
             }
+
+            if (!this.isGotMessages) setTimeout(() => this.checkMessages(), 10000);
+            this.isGotMessages = true;
         },
         addBotMessage(content) {
-            this.messages = [...this.messages, {
+            this.messages = append(this.messages, {
                 _id: this.messages.length,
                 content: content,
-                senderId: 0,
+                senderId: '0',
                 timestamp: new Date().toString().substring(16, 21),
                 date: new Date().toDateString(),
                 avatar: 'https://myshmarket.site/assets/images/uploaded/image20.png'
-            }];
+            });
         },
         addUserMessage(content) {
-            this.messages = [...this.messages, {
+            this.messages = append(this.messages, {
                 _id: this.messages.length,
                 content: content,
-                senderId: this.$store.state.userId,
+                senderId: this.$store.state.userId.toString(),
                 timestamp: new Date().toString().substring(16, 21),
                 date: new Date().toDateString(),
-                avatar: `https://myshmarket.site${this.$store.state.userAvatar}`
-            }]
+                avatar: this.$store.state.userAvatar
+            });
         },
         async startDialog() {
             await this.getProblems();
@@ -189,25 +229,51 @@ export default {
                 .catch((err) => console.log(err));
         },
         newMessage(content) {
-            this.$http.post(`chats/messages/new/${this.id}`, {content: content})
+            this.$http.post(`chats/messages/new/${this.id}`, JSON.stringify(content))
             .then((resp) => {
                 const msg = resp.data;
-                this.messages = [...this.messages, {
-                    _id: msg.id,
-					content: msg.content,
-					senderId: msg.senderId,
-					timestamp: msg.timestamp,
-					date: msg.date.toString(),
-                    username: '',
-                    avatar: 'https://myshmarket.site' + msg.avatar.route
-                }];
+                if(msg.id > this.maxMsgId) this.maxMsgId = msg.id;
+                this.messages = append(this.messages, this.mapMessage(msg));
             })
             .catch((err) => console.log(err));
+        },
+        mapMessage(msg) {
+            return {
+                    _id: msg.id.toString(),
+					content: msg.content,
+					senderId: msg.senderId.toString(),
+					timestamp: msg.timestamp,
+					date: (new Date(msg.date)).toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+                    username: '',
+                    avatar: 'https://myshmarket.site' + msg.avatar.route
+            }
+        },
+        async checkMessages() {
+            if(this.chat.id <= 0) return;
+
+            try {
+                console.log('check messages');
+                let messages = (await this.$http.get(
+                    'chats/messages/' + this.chat.id, { params: { take: 10, skip: 0 } })).data
+                    .map(this.mapMessage);
+                
+                let msgToAdd = messages.filter((x) => x._id > this.maxMsgId);
+                console.log('max id: ' + this.maxMsgId);
+                console.log('messages to add:');
+                console.log(msgToAdd);
+                if(msgToAdd.length > 0) {
+                    this.messages = append(this.messages, msgToAdd);
+                    msgToAdd.forEach((x) => {
+                        if(this.maxMsgId < x._id) this.maxMsgId = x._id;
+                    });
+                };
+
+                setTimeout(() => this.checkMessages(), 10000);
+            }
+            catch (err) {
+                console.log(err);
+            }
         }
     }
 }
 </script>
-
-<style scoped>
-
-</style>
