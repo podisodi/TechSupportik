@@ -1,7 +1,7 @@
 <template>
 <div class="main-wrapper">
     <div>
-        <span class="txt-left" v-if="userName">{{ userName }},</span><span class="depart-st"> {{ departament }} </span>
+        <span>Заявка №{{ requestNum }}: </span><span class="txt-left" v-if="userName">{{ userName }},</span><span class="depart-st"> {{ departament }} </span>
     </div>
     <div>
         <span>Статус обращения: </span><span :class="'status status-' + statusEng">{{ statusStr }}</span>
@@ -19,6 +19,7 @@ export default {
         userName: String,
         departament: String,
         status: Number,
+        requestNum: Number
     },
     computed: {
         statusEng: function() {

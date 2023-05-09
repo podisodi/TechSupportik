@@ -1,6 +1,6 @@
 <template>
-    <div style="cursor: pointer" @click="emit('click', $event)">
-        <ch-li-it-label style="width: 100%;" :userName="chat.userName" :departament="chat.userDepartment" :status="chat.status" />
+    <div style="cursor: pointer" @click="emit('click')">
+        <ch-li-it-label style="width: 100%;" :requestNum="chat.requestId" :userName="chat.userName" :departament="chat.userDepartment" :status="chat.status" />
         <ch-li-it-box style="width: 100%;" :id="chat.id" :title="chat.problem" :lastMessage="chat.lastMessage" :chosen="chosen" />
     </div>
 </template>
@@ -23,6 +23,7 @@ export default {
             status: Number,
             problem: String,
             lastMessage: String,
+            requestId: Number
         },
         chosen: Boolean,
     },
